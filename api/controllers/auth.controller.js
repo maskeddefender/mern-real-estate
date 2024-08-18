@@ -54,4 +54,52 @@ export const signin = async (req, res, next) => {
     }
   };
 
-  
+  export const google = async (req, res, next) => {
+    try {
+      // check for the user in the database using the email
+      const user = await User.findOne({ email: req.body.email });
+      if (user) {
+        // if the user is found, then sign in the user using the jwt token - register the user
+        // to do so we need to create a token and sign in the user using the id of the user and the secret key from the .env file and save the token inside cookie
+        const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET);
+        // seperating the password from the user object so that the password is not sent to the browser
+        const { password: pass, ...rest } = user._doc;
+        res
+          .cookie('access_token', token, { httpOnly: true })
+          .status(200)
+          .json(rest);
+      } else { // if the user is not found, then create a new user
+        // generate a random password for the user as the user is signing in using google and in our database we have password field which is required as defined in our user model in the models folder, hence we need to generate a random password for the user
+        const generatedPassword =
+          Math.random().toString(36).slice(-8) +
+          Math.random().toString(36).slice(-8); // 16 characters long password
+          // hash the password before saving it to the database
+        const hashedPassword = bcryptjs.hashSync(generatedPassword, 10);
+
+        // create a new user using the information from the body of the request
+        const newUser = new User({
+          // saving the fields from the body of the request to the database
+          username: // generating a random username for the user using the name from the body of the request and a random number without any spaces
+            req.body.name.split(' ').join('').toLowerCase() +
+            Math.random().toString(36).slice(-4),
+          email: req.body.email,
+          password: hashedPassword,
+          avatar: req.body.photo,
+        });
+
+        // saving the user to the database
+        await newUser.save();
+        // creating a token and signing in the user using the jwt token
+        const token = jwt.sign({ id: newUser._id }, process.env.JWT_SECRET);
+        // seperating the password from the user object so that the password is not sent to the browser
+        const { password: pass, ...rest } = newUser._doc;
+        res
+          .cookie('access_token', token, { httpOnly: true })
+          .status(200)
+          .json(rest);
+      }
+      // if there is an error, we send the error to the next middleware to handle the error
+    } catch (error) {
+      next(error);
+    }
+  };
