@@ -175,15 +175,22 @@ export default function Profile() {
     }
   };
 
+  // function to handle the sign out of the user - this function is responsible for signing out the user - when the sign out button is clicked the user is signed out
   const handleSignOut = async () => {
     try {
+      // if the sign out request is made then dispatch the signOutUserStart action - this is to set the loading state to true
       dispatch(signOutUserStart());
+      // create a get request to the server to sign out the user
       const res = await fetch('/api/auth/signout');
+      // get the data from the response in json format
       const data = await res.json();
+      // if the success key in the data object is false then dispatch the deleteUserFailure action - this is to set the error state to the error message in the data object
       if (data.success === false) {
+
         dispatch(deleteUserFailure(data.message));
         return;
       }
+      // if everything is okay then dispatch the deleteUserSuccess action - this is to set the currentUser state to null and set the loading state to false and error state to null
       dispatch(deleteUserSuccess(data));
     } catch (error) {
       dispatch(deleteUserFailure(data.message));

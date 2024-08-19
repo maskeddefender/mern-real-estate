@@ -103,3 +103,15 @@ export const signin = async (req, res, next) => {
       next(error);
     }
   };
+
+  // sign out the user
+export const signOut = async (req, res, next) => {
+  try {
+    // clear the cookie from the browser before the user is logged out
+    res.clearCookie('access_token');
+    // just it - now return the message to the client that the user has been logged
+    res.status(200).json('User has been logged out!');
+  } catch (error) {
+    next(error);
+  }
+};
