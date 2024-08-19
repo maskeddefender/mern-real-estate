@@ -3,6 +3,7 @@ import mongoose from 'mongoose';
 import dotenv from 'dotenv';
 import userRouter from './routes/user.route.js';
 import authRouter from './routes/auth.route.js';
+import cookieParser from 'cookie-parser';
 dotenv.config();
 
 // to get application configuration from .env file 
@@ -23,6 +24,9 @@ const app = express();
 
 // this is going to allow us to get the information json as the input from the body of the request
 app.use(express.json());
+
+// this is going to allow us to get the information from the cookie - initializing the cookie parser
+app.use(cookieParser());
 
 // listen to the root path - port 3000
 app.listen(3000, () => {

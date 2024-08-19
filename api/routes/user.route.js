@@ -1,5 +1,6 @@
 import express from 'express';
-import { test } from '../controllers/user.controller.js';
+import { test, updateUser} from '../controllers/user.controller.js';
+import { verifyToken } from '../utils/verifyUser.js';
 
 // The Router function is a built-in method in Express that allows you to create a new router object. A router is like a "mini-application" that can be used to define routes, middleware, and other aspects of your Express app.
 const router = express.Router();
@@ -8,5 +9,8 @@ const router = express.Router();
 
 
 router.get('/test', test);
+
+// update user by id 
+router.post('/update/:id', verifyToken, updateUser)
 
 export default router;
