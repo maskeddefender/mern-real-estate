@@ -10,7 +10,7 @@ export const test = (req, res) => {
 
 
 export const updateUser = async (req, res, next) => {
-  // check if the user is updating their own account
+  // check if the user is updating their own account - req.prams.id is the id of the user that is being updated and req.user.id is the id of the user that is logged in
   if (req.user.id !== req.params.id)
     // if the user is not updating their own account then return the error message using the error handler middleware
     return next(errorHandler(401, 'You can only update your own account!'));
@@ -45,6 +45,52 @@ export const updateUser = async (req, res, next) => {
     const { password, ...rest } = updatedUser._doc;
 
     // return the updated user information to the client
+    res.status(200).json(rest);
+  } catch (error) {
+    next(error);
+  }
+};
+
+// delete user by id
+export const deleteUser = async (req, res, next) => {
+  // check if the user is deleting their own account - req.prams.id is the id of the user that is being deleted and req.user.id is the id of the user that is logged in
+  if (req.user.id !== req.params.id)
+    return next(errorHandler(401, 'You can only delete your own account!'));
+  try {
+    // delete the user by id in the model we created in the user.model.js file by finding the user by id and deleting it
+    await User.findByIdAndDelete(req.params.id);
+    // clear the cookie from the browser before the user is deleted
+    res.clearCookie('access_token');
+    // return the message to the client that the user has been deleted
+    res.status(200).json('User has been deleted!');
+
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getUserListings = async (req, res, next) => {
+  if (req.user.id === req.params.id) {
+    try {
+      const listings = await Listing.find({ userRef: req.params.id });
+      res.status(200).json(listings);
+    } catch (error) {
+      next(error);
+    }
+  } else {
+    return next(errorHandler(401, 'You can only view your own listings!'));
+  }
+};
+
+export const getUser = async (req, res, next) => {
+  try {
+    
+    const user = await User.findById(req.params.id);
+  
+    if (!user) return next(errorHandler(404, 'User not found!'));
+  
+    const { password: pass, ...rest } = user._doc;
+  
     res.status(200).json(rest);
   } catch (error) {
     next(error);

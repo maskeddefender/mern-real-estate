@@ -149,19 +149,28 @@ export default function Profile() {
     }
   };
 
+  //
   const handleDeleteUser = async () => {
     try {
+      // if the delete user request is made then dispatch the deleteUserStart action - this is to set the loading state to true
       dispatch(deleteUserStart());
+      // create a delete request to the server to delete the user by id
       const res = await fetch(`/api/user/delete/${currentUser._id}`, {
+        // method is delete
         method: 'DELETE',
       });
+      // get the data from the response in json format
       const data = await res.json();
+      // if the success key in the data object is false then dispatch the deleteUserFailure action - this is to set the error state to the error message in the data object
       if (data.success === false) {
+        // if there is an error in the delete user request then dispatch the deleteUserFailure action - this is to set the error state to the error message
         dispatch(deleteUserFailure(data.message));
         return;
       }
+      // if everything is okay then dispatch the deleteUserSuccess action - this is to set the currentUser state to null and set the loading state to false and error state to null
       dispatch(deleteUserSuccess(data));
     } catch (error) {
+      // if there is an error in the delete user request then dispatch the deleteUserFailure action - this is to set the error state to the error message
       dispatch(deleteUserFailure(error.message));
     }
   };
@@ -289,7 +298,7 @@ export default function Profile() {
       </form>
       <div className='flex justify-between mt-5'>
         <span
-          onClick={handleDeleteUser}
+          onClick={handleDeleteUser} 
           className='text-red-800 cursor-pointer'
         >
           Delete account
