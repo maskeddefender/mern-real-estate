@@ -21,13 +21,22 @@ import {
 } from '../redux/user/userSlice';
 import { useDispatch } from 'react-redux';
 import { Link } from 'react-router-dom';
+
+
 export default function Profile() {
   const fileRef = useRef(null);
   const { currentUser, loading, error } = useSelector((state) => state.user);
+
+  // file is the piece of state responsible for holding the file to be uploaded
   const [file, setFile] = useState(undefined);
+  //console.log(file);
+  // filePerc is the piece of state responsible for holding the progress of the file upload in percentage
   const [filePerc, setFilePerc] = useState(0);
+  // fileUploadError is the piece of state responsible for holding the error message if there is an error in the file upload
   const [fileUploadError, setFileUploadError] = useState(false);
+  // formData is the piece of state responsible for holding the form data - this is the data that will be sent to the server when the form is submitted - when there will be any changes in the form inputs the formData state will be updated
   const [formData, setFormData] = useState({});
+  // console.log(formData);
   const [updateSuccess, setUpdateSuccess] = useState(false);
   const [showListingsError, setShowListingsError] = useState(false);
   const [userListings, setUserListings] = useState([]);
@@ -39,30 +48,43 @@ export default function Profile() {
   // request.resource.size < 2 * 1024 * 1024 &&
   // request.resource.contentType.matches('image/.*')
 
+  // useEffect hook to handle the file upload - when the file state changes the file upload is triggered
+  // here we are using the firebase storage to upload the file - when the file is uploaded we get the download url and set it to the formData state using the setFormData function
   useEffect(() => {
     if (file) {
       handleFileUpload(file);
     }
   }, [file]);
 
+  // function to handle the file upload - this function is responsible for uploading the file to the firebase storage
   const handleFileUpload = (file) => {
-    const storage = getStorage(app);
+    // get the firebase storage - based on this firebase will recognize the storage bucket
+    const storage = getStorage(app); // this app is the firebase app we created in the firebase.js file
+    // setting the file name to the current time in milliseconds and the file name
     const fileName = new Date().getTime() + file.name;
+    // crating a reference to the storage bucket with the file name - this is the path where the file will be stored in the firebase storage
     const storageRef = ref(storage, fileName);
+    // uploading the file to the storage reference - this is a resumable upload
     const uploadTask = uploadBytesResumable(storageRef, file);
 
+    // this is the event listener for the state change of the upload task - this will give us the progress of the upload
     uploadTask.on(
       'state_changed',
       (snapshot) => {
         const progress =
-          (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-        setFilePerc(Math.round(progress));
+          (snapshot.bytesTransferred / snapshot.totalBytes) * 100; // calculating the progress of the upload in percentage
+        setFilePerc(Math.round(progress)); // setting the progress to the filePerc state
+        // console.log('Upload is ' + progress + '% done');
       },
+      // if there is an error in the upload task this function will be triggered
       (error) => {
         setFileUploadError(true);
       },
+      // get the file
       () => {
+        // get the download url of the file - this is the url where the file is stored in the firebase storage
         getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) =>
+          // formData is the state that holds the form data - here we are setting the avatar key of the formData state to the download url of the file - if any updates are made to the avatar this will be updated in the formData state
           setFormData({ ...formData, avatar: downloadURL })
         );
       }
@@ -168,11 +190,11 @@ export default function Profile() {
       <h1 className='text-3xl font-semibold text-center my-7'>User Profile</h1>
       <form onSubmit={handleSubmit} className='flex flex-col gap-4'>
         <input
-          onChange={(e) => setFile(e.target.files[0])}
-          type='file'
-          ref={fileRef}
-          hidden
-          accept='image/*'
+          onChange={(e) => setFile(e.target.files[0])} // set the file to the file state when the file input changes - if any changes are made to the file input it is set to the file state
+          type='file' // this is hidden and is clicked when the image is clicked using the react useRef hook
+          ref={fileRef} // reference to the file input to be clicked when the image is clicked
+          hidden // hide the file input
+          accept='image/*' // accept only image files
         />
         <img
           onClick={() => fileRef.current.click()}
@@ -182,15 +204,15 @@ export default function Profile() {
           className='rounded-full h-24 w-24 object-cover cursor-pointer self-center mt-2'
         />
         <p className='text-sm self-center'>
-          {fileUploadError ? (
+          {fileUploadError ? ( // error message if there is an error in the file upload
             <span className='text-red-700'>
               Error Image upload (image must be less than 2 mb)
             </span>
-          ) : filePerc > 0 && filePerc < 100 ? (
+          ) : (filePerc > 0 && filePerc < 100 ) ?  ( // if the file upload is in progress show the percentage of the upload
             <span className='text-slate-700'>{`Uploading ${filePerc}%`}</span>
-          ) : filePerc === 100 ? (
+          ) : filePerc === 100 ? ( // if the file upload is completed show the success message
             <span className='text-green-700'>Image successfully uploaded!</span>
-          ) : (
+          ) : ( // if there is no file upload show nothing
             ''
           )}
         </p>
