@@ -37,9 +37,13 @@ export default function Profile() {
   // formData is the piece of state responsible for holding the form data - this is the data that will be sent to the server when the form is submitted - when there will be any changes in the form inputs the formData state will be updated
   const [formData, setFormData] = useState({});
   // console.log(formData);
+  // updateSuccess is the piece of state responsible for showing the success message when the user is updated successfully
   const [updateSuccess, setUpdateSuccess] = useState(false);
+  // for timer to show the message for a few seconds
+  // const [showMessage, setShowMessage] = useState(false);
   const [showListingsError, setShowListingsError] = useState(false);
   const [userListings, setUserListings] = useState([]);
+  // initializing the useDispatch hook to dispatch the actions
   const dispatch = useDispatch();
 
   // firebase storage
@@ -55,6 +59,22 @@ export default function Profile() {
       handleFileUpload(file);
     }
   }, [file]);
+
+
+  // timer to show the message for a few seconds - but it is not used in the code
+  // useEffect(() => {
+  //   if (updateSuccess) {
+  //     setShowMessage(true);
+
+  //     // Hide the message after 5 seconds
+  //     const timer = setTimeout(() => {
+  //       setShowMessage(false);
+  //     }, 5000);
+
+  //     // Cleanup the timer when the component unmounts or updateSuccess changes
+  //     return () => clearTimeout(timer);
+  //   }
+  // }, [updateSuccess]);
 
   // function to handle the file upload - this function is responsible for uploading the file to the firebase storage
   const handleFileUpload = (file) => {
@@ -91,14 +111,22 @@ export default function Profile() {
     );
   };
 
+  // function to handle the change in the form inputs - this function is responsible for updating the formData state when there is a change in the form inputs - this function is triggered when there is a change in the form inputs when clicked or typed
   const handleChange = (e) => {
+    // fromData is the previous state of the formData state - we are using the spread operator to get the previous state of the formData state
+    // e.target.id is the id of the input field - this is used to set the key of the formData state to the value of the input field
+    // e.target.value is the value of the input field - this is used to set the value of the key of the formData state
     setFormData({ ...formData, [e.target.id]: e.target.value });
   };
 
+  // function to handle the form submission - this function is responsible for updating the user information - when the form is submitted the form data is sent to the server to update the user information
   const handleSubmit = async (e) => {
+    // prevent the default behavior of the form - this is to prevent the page from reloading when the form is submitted
     e.preventDefault();
+
     try {
-      dispatch(updateUserStart());
+      // dispatch the updateUserStart action - this is to set the loading state to true
+      dispatch(updateUserStart()); // loading effect will be shown
       const res = await fetch(`/api/user/update/${currentUser._id}`, {
         method: 'POST',
         headers: {
@@ -106,12 +134,14 @@ export default function Profile() {
         },
         body: JSON.stringify(formData),
       });
+      // get the data from the response in json format
       const data = await res.json();
       if (data.success === false) {
+        // if the success key in the data object is false then dispatch the updateUserFailure action - this is to set the error state to the error message in the data object
         dispatch(updateUserFailure(data.message));
         return;
       }
-
+      // if everything is okay then dispatch the data
       dispatch(updateUserSuccess(data));
       setUpdateSuccess(true);
     } catch (error) {
@@ -188,6 +218,7 @@ export default function Profile() {
   return (
     <div className='p-3 max-w-lg mx-auto'>
       <h1 className='text-3xl font-semibold text-center my-7'>User Profile</h1>
+      {/* this handleSubmit function is responsible for updating the user information - when the form is submitted the form data is sent to the server to update the user information */}
       <form onSubmit={handleSubmit} className='flex flex-col gap-4'>
         <input
           onChange={(e) => setFile(e.target.files[0])} // set the file to the file state when the file input changes - if any changes are made to the file input it is set to the file state
@@ -220,12 +251,14 @@ export default function Profile() {
         <input
           type='text'
           placeholder='username'
+          // defaultValue is used to set the default value of the input to the current user username 
           defaultValue={currentUser.username}
           id='username'
           className='border p-3 rounded-lg'
           onChange={handleChange}
         />
         <input
+          // type is email to show the email keyboard when the input is clicked
           type='email'
           placeholder='email'
           id='email'
@@ -234,14 +267,15 @@ export default function Profile() {
           onChange={handleChange}
         />
         <input
+          // type is password to hide the password when typed
           type='password'
           placeholder='password'
           onChange={handleChange}
           id='password'
           className='border p-3 rounded-lg'
         />
-        <button
-          disabled={loading}
+        <button // button to submit the form and loading effect is shown when the form is submitted
+          disabled={loading}          
           className='bg-slate-700 text-white rounded-lg p-3 uppercase hover:opacity-95 disabled:opacity-80'
         >
           {loading ? 'Loading...' : 'Update'}
@@ -265,11 +299,12 @@ export default function Profile() {
         </span>
       </div>
 
+      {/* if there is an error in the file upload show the error message */}
       <p className='text-red-700 mt-5'>{error ? error : ''}</p>
       <p className='text-green-700 mt-5'>
         {updateSuccess ? 'User is updated successfully!' : ''}
       </p>
-      <button onClick={handleShowListings} className='text-green-700 w-full'>
+      <button onClick={handleShowListings} className='text-green-700 mt-5 w-full'>
         Show Listings
       </button>
       <p className='text-red-700 mt-5'>
