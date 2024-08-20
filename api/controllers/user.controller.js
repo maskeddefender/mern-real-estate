@@ -1,6 +1,7 @@
 import bcryptjs from 'bcryptjs';
 import User from '../models/user.model.js';
 import { errorHandler } from '../utils/error.js';
+import Listing from '../models/listing.model.js';
 
 export const test = (req, res) => {
   res.json({
@@ -70,11 +71,13 @@ export const deleteUser = async (req, res, next) => {
 };
 
 
-
+// get all listings of a user by id - the user can only view their own listings
 export const getUserListings = async (req, res, next) => {
   if (req.user.id === req.params.id) {
     try {
+      // find all the listings of a user by id in the model we created in the listing.model.js file
       const listings = await Listing.find({ userRef: req.params.id });
+      // when found return the listings to the client
       res.status(200).json(listings);
     } catch (error) {
       next(error);
