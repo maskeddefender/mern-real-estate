@@ -197,17 +197,21 @@ export default function Profile() {
     }
   };
 
-  
+  // function to handle the show listings of the user - this function is responsible for showing the listings of the user - when the show listings button is clicked the listings of the user are shown
   const handleShowListings = async () => {
     try {
+      // if there is no error in showing the listings then set the showListingsError state to false
       setShowListingsError(false);
+      // create a get request to the server to get the listings of the user by id - the user id is passed as a parameter in the url
       const res = await fetch(`/api/user/listings/${currentUser._id}`);
+      // get the data from the response in json format
       const data = await res.json();
+      // if the success key in the data object is false then set the showListingsError state to true
       if (data.success === false) {
         setShowListingsError(true);
         return;
       }
-
+      // if everything is okay then set the user listings to the data object - this is to show the listings of the user in the UI
       setUserListings(data);
     } catch (error) {
       setShowListingsError(true);
@@ -321,25 +325,28 @@ export default function Profile() {
       <p className='text-green-700 mt-5'>
         {updateSuccess ? 'User is updated successfully!' : ''}
       </p>
+      {/* button to show the listings of the user - when clicked the user listings are shown */}
       <button onClick={handleShowListings} className='text-green-700 mt-5 w-full'>
         Show Listings
       </button>
+      {/* if there is an error in showing the listings show the error message */}
       <p className='text-red-700 mt-5'>
         {showListingsError ? 'Error showing listings' : ''}
       </p>
 
+      {/* if the user has listings in existing then show the listings below  */}
       {userListings && userListings.length > 0 && (
         <div className='flex flex-col gap-4'>
           <h1 className='text-center mt-7 text-2xl font-semibold'>
             Your Listings
-          </h1>
+           </h1> {/* this will give us each listings */}
           {userListings.map((listing) => (
             <div
-              key={listing._id}
+              key={listing._id} // key is the id of the listing - this is used to uniquely identify the listing
               className='border rounded-lg p-3 flex justify-between items-center gap-4'
             >
-              <Link to={`/listing/${listing._id}`}>
-                <img
+              <Link to={`/listing/${listing._id}`}> {/* when the listing is clicked the user is redirected to the listing page */}
+                <img //title k badle first image as a cover show kr rhe
                   src={listing.imageUrls[0]}
                   alt='listing cover'
                   className='h-16 w-16 object-contain'
@@ -347,11 +354,12 @@ export default function Profile() {
               </Link>
               <Link
                 className='text-slate-700 font-semibold  hover:underline truncate flex-1'
-                to={`/listing/${listing._id}`}
+                to={`/listing/${listing._id}`} 
               >
-                <p>{listing.name}</p>
+                <p>{listing.name}</p> {/* name of the listing as title */}
               </Link>
 
+              {/* Two buttons for delete and edit listing - when the delete button is clicked the listing is deleted and when the edit button is clicked the user is redirected to the update listing page */}
               <div className='flex flex-col item-center'>
                 <button
                   onClick={() => handleListingDelete(listing._id)}
@@ -360,7 +368,7 @@ export default function Profile() {
                   Delete
                 </button>
                 <Link to={`/update-listing/${listing._id}`}>
-                  <button className='text-green-700 uppercase'>Edit</button>
+                  <button className='text-green-800 uppercase'>Edit</button>
                 </Link>
               </div>
             </div>
