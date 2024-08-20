@@ -12,7 +12,10 @@ import { useNavigate } from 'react-router-dom';
 export default function CreateListing() {
   const { currentUser } = useSelector((state) => state.user);
   const navigate = useNavigate();
+  // setting the initial state of the form data and the files to be uploaded to the server
   const [files, setFiles] = useState([]);
+  // console.log(files);
+  // since there are more than 1 input fields, we will use an object to store the form data instead of using multiple states
   const [formData, setFormData] = useState({
     imageUrls: [],
     name: '',
@@ -28,55 +31,76 @@ export default function CreateListing() {
     furnished: false,
   });
   const [imageUploadError, setImageUploadError] = useState(false);
+  // setting the initial state of the uploading, error and loading states to false 
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState(false);
   const [loading, setLoading] = useState(false);
   console.log(formData);
-  const handleImageSubmit = (e) => {
-    if (files.length > 0 && files.length + formData.imageUrls.length < 7) {
-      setUploading(true);
-      setImageUploadError(false);
-      const promises = [];
 
+  // function to handle the image submit and store the images in the firebase storage
+  const handleImageSubmit = (e) => {
+    // only 6 images can be uploaded per listing
+    if (files.length > 0 && files.length + formData.imageUrls.length < 7) {
+        // set the uploading state to true and the image upload error to false
+      setUploading(true); 
+      setImageUploadError(false);
+      // create an array of promises to store the images in the firebase storage
+      // we are promising that we will upload multiple images to the firebase storage (less tha 7 images)
+      const promises = [];
+      
+      // loop one by one through the files and store the images in the firebase storage using the storeImage function
       for (let i = 0; i < files.length; i++) {
-        promises.push(storeImage(files[i]));
+        promises.push(storeImage(files[i])); //
       }
+      // once all the promises are resolved, set the image urls in the form data state to the urls of the images that were uploaded
       Promise.all(promises)
         .then((urls) => {
           setFormData({
-            ...formData,
-            imageUrls: formData.imageUrls.concat(urls),
+            ...formData, // keeping the previous data
+            imageUrls: formData.imageUrls.concat(urls), // adding the new one url to previous ones
           });
+          // initializing the files to an empty array 
           setImageUploadError(false);
           setUploading(false);
         })
+        // if the image upload fails, set the image upload error to 'Image upload failed'
         .catch((err) => {
           setImageUploadError('Image upload failed (2 mb max per image)');
           setUploading(false);
         });
+        // if the number of images is more than 6, set the image upload error to 'You can only upload 6 images per listing'
     } else {
       setImageUploadError('You can only upload 6 images per listing');
       setUploading(false);
     }
   };
 
+  // function to store the image in the firebase storage
   const storeImage = async (file) => {
+    // return that resolves the promise if the image is uploaded successfully and rejects the promise if the image upload fails
     return new Promise((resolve, reject) => {
       const storage = getStorage(app);
+      // create a unique file name for the image
       const fileName = new Date().getTime() + file.name;
+      // create a reference to the firebase storage
       const storageRef = ref(storage, fileName);
+      // upload the image to the firebase storage - resumable upload
       const uploadTask = uploadBytesResumable(storageRef, file);
+      // listen to the state of the upload task
       uploadTask.on(
-        'state_changed',
+        'state_changed', // listen to the state of the upload task
         (snapshot) => {
           const progress =
             (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
           console.log(`Upload is ${progress}% done`);
         },
+        // if the upload fails, reject the promise
         (error) => {
           reject(error);
         },
+        // if the upload is successful, resolve the promise
         () => {
+            // get the download url of the image that was uploaded to the firebase storage then resolve the promise
           getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
             resolve(downloadURL);
           });
@@ -85,9 +109,12 @@ export default function CreateListing() {
     });
   };
 
+  // function to remove the image from the form data state
   const handleRemoveImage = (index) => {
     setFormData({
       ...formData,
+      // The .filter() method creates a new array by including only the items that meet a certain condition.
+      // These are the parameters passed to the callback function inside .filter(). The first parameter (_) represents the current item in the array, and the second parameter (i) represents the index of that item. The underscore (_) is used as a placeholder when the first parameter is not needed.
       imageUrls: formData.imageUrls.filter((_, i) => i !== index),
     });
   };
@@ -335,29 +362,31 @@ export default function CreateListing() {
             <button
               type='button'
               disabled={uploading} // disable the button when the images are being uploaded
-              onClick={handleImageSubmit}
+              onClick={handleImageSubmit} // handle the image submit and store the images in the firebase storage
               className='p-3 text-green-700 border border-green-700 rounded uppercase hover:shadow-lg disabled:opacity-80'
             > 
               {uploading ? 'Uploading...' : 'Upload'}
             </button>
           </div>
+            {/* if there is an image upload error, display the error */}
           <p className='text-red-700 text-sm'>
             {imageUploadError && imageUploadError}
           </p>
-          {formData.imageUrls.length > 0 &&
+            {/* if there are images in the form data, display the images */}
+          {formData.imageUrls.length > 0 && 
             formData.imageUrls.map((url, index) => (
               <div
-                key={url}
+                key={url} // this key will verify the image
                 className='flex justify-between p-3 border items-center'
               >
                 <img
-                  src={url}
+                  src={url} // image url from the firebase storage
                   alt='listing image'
                   className='w-20 h-20 object-contain rounded-lg'
                 />
-                <button
+                <button // button to remove the image
                   type='button'
-                  onClick={() => handleRemoveImage(index)}
+                  onClick={() => handleRemoveImage(index)} // handle the remove image function
                   className='p-3 text-red-700 rounded-lg uppercase hover:opacity-75'
                 >
                   Delete
