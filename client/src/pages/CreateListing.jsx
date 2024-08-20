@@ -10,12 +10,14 @@ import { useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 
 export default function CreateListing() {
+    // setting the initial state of the form data and the files to be uploaded to the server
   const { currentUser } = useSelector((state) => state.user);
   const navigate = useNavigate();
   // setting the initial state of the form data and the files to be uploaded to the server
   const [files, setFiles] = useState([]);
   // console.log(files);
   // since there are more than 1 input fields, we will use an object to store the form data instead of using multiple states
+  // setting the initial state of the form data to an object with the following properties
   const [formData, setFormData] = useState({
     imageUrls: [],
     name: '',
@@ -33,7 +35,9 @@ export default function CreateListing() {
   const [imageUploadError, setImageUploadError] = useState(false);
   // setting the initial state of the uploading, error and loading states to false 
   const [uploading, setUploading] = useState(false);
+  // set the error state to false
   const [error, setError] = useState(false);
+  // set the loading state to false
   const [loading, setLoading] = useState(false);
   console.log(formData);
 
@@ -41,13 +45,13 @@ export default function CreateListing() {
   const handleImageSubmit = (e) => {
     // only 6 images can be uploaded per listing
     if (files.length > 0 && files.length + formData.imageUrls.length < 7) {
-        // set the uploading state to true and the image upload error to false
-      setUploading(true); 
+      // set the uploading state to true and the image upload error to false
+      setUploading(true);
       setImageUploadError(false);
       // create an array of promises to store the images in the firebase storage
       // we are promising that we will upload multiple images to the firebase storage (less tha 7 images)
       const promises = [];
-      
+
       // loop one by one through the files and store the images in the firebase storage using the storeImage function
       for (let i = 0; i < files.length; i++) {
         promises.push(storeImage(files[i])); //
@@ -59,18 +63,19 @@ export default function CreateListing() {
             ...formData, // keeping the previous data
             imageUrls: formData.imageUrls.concat(urls), // adding the new one url to previous ones
           });
-          // initializing the files to an empty array 
+          // initializing the files to an empty array
           setImageUploadError(false);
           setUploading(false);
         })
         // if the image upload fails, set the image upload error to 'Image upload failed'
         .catch((err) => {
-          setImageUploadError('Image upload failed (2 mb max per image)');
+          setImageUploadError("Image upload failed (2 mb max per image)");
           setUploading(false);
         });
-        // if the number of images is more than 6, set the image upload error to 'You can only upload 6 images per listing'
+      // if the number of images is more than 6, set the image upload error to 'You can only upload 6 images per listing'
+    
     } else {
-      setImageUploadError('You can only upload 6 images per listing');
+      setImageUploadError("You can only upload 6 images per listing");
       setUploading(false);
     }
   };
@@ -119,29 +124,32 @@ export default function CreateListing() {
     });
   };
 
+  // this is for the form data to be updated when the user types in the input fields
   const handleChange = (e) => {
+    // if the target id is sale or rent, set the type in the form data to the target id
     if (e.target.id === 'sale' || e.target.id === 'rent') {
       setFormData({
-        ...formData,
-        type: e.target.id,
+        ...formData, // keeping the previous data
+        type: e.target.id, // setting the type to the target id, that is, sale or rent - can't be both
       });
     }
 
+    // if the target id is parking, furnished or offer, set the form data to the target id and checked to the target checked - boolean value
     if (
-      e.target.id === 'parking' ||
+      e.target.id === 'parking' || 
       e.target.id === 'furnished' ||
       e.target.id === 'offer'
     ) {
       setFormData({
         ...formData,
-        [e.target.id]: e.target.checked,
+        [e.target.id]: e.target.checked, // this bracket just gives us the name of the e.target.id
       });
     }
 
     if (
-      e.target.type === 'number' ||
-      e.target.type === 'text' ||
-      e.target.type === 'textarea'
+      e.target.type === 'number' || // number for beds, baths, regular price and discount price
+      e.target.type === 'text' || // text for name and address
+      e.target.type === 'textarea' // textarea for description
     ) {
       setFormData({
         ...formData,
@@ -150,31 +158,42 @@ export default function CreateListing() {
     }
   };
 
+  // this is to submit our data to mongoDB database when clicked on the create listing button
   const handleSubmit = async (e) => {
+    // to prevent refreshing of page
     e.preventDefault();
     try {
+        // if there are no images uploaded, set the error to 'You must upload at least one image'
       if (formData.imageUrls.length < 1)
         return setError('You must upload at least one image');
+        // if the discount price is greater than the regular price, set the error to 'Discount price must be lower than regular price'
       if (+formData.regularPrice < +formData.discountPrice)
         return setError('Discount price must be lower than regular price');
-      setLoading(true);
-      setError(false);
-      const res = await fetch('/api/listing/create', {
-        method: 'POST',
+      setLoading(true); // set the loading state to true
+      setError(false); // set the error state to false
+      // fetch the data from the api endpoint and send the form data to the server to create the listing
+      const res = await fetch('/api/listing/create', { 
+        method: 'POST', // post method to send the data to the server
         headers: {
-          'Content-Type': 'application/json',
+          'Content-Type': 'application/json', // content type is json
         },
+        // send the form data to the server as a json string and include the user reference in the form data
         body: JSON.stringify({
-          ...formData,
-          userRef: currentUser._id,
+          ...formData, // send the form data
+          userRef: currentUser._id, // and the user reference of current user
         }),
       });
+      // get the data from the response in json format
       const data = await res.json();
+        // set the loading state to false
       setLoading(false);
+        // if the success is false, set the error to the message
       if (data.success === false) {
         setError(data.message);
       }
+        // if the success is true, navigate to the listing page with the id of the listing that was created in the database
       navigate(`/listing/${data._id}`);
+      // if there is an error, set the error to the error message
     } catch (error) {
       setError(error.message);
       setLoading(false);
@@ -227,7 +246,7 @@ export default function CreateListing() {
                 id='sale'
                 className='w-5'
                 onChange={handleChange}
-                checked={formData.type === 'sale'}
+                checked={formData.type === 'sale'} // if the type is sale, the checkbox will be checked
               />
               <span>Sell</span>
             </div>
@@ -237,7 +256,7 @@ export default function CreateListing() {
                 id='rent'
                 className='w-5'
                 onChange={handleChange}
-                checked={formData.type === 'rent'}
+                checked={formData.type === 'rent'} // if the type is rent, the checkbox will be checked
               />
               <span>Rent</span>
             </div>
@@ -247,7 +266,7 @@ export default function CreateListing() {
                 id='parking'
                 className='w-5'
                 onChange={handleChange}
-                checked={formData.parking}
+                checked={formData.parking} // if the parking is available, the checkbox will be checked
               />
               <span>Parking spot</span>
             </div>
@@ -257,7 +276,7 @@ export default function CreateListing() {
                 id='furnished'
                 className='w-5'
                 onChange={handleChange}
-                checked={formData.furnished}
+                checked={formData.furnished} // if the listing is furnished, the checkbox will be checked
               />
               <span>Furnished</span>
             </div>
@@ -267,7 +286,7 @@ export default function CreateListing() {
                 id='offer'
                 className='w-5'
                 onChange={handleChange}
-                checked={formData.offer}
+                checked={formData.offer} // if the listing is on offer, the checkbox will be checked
               />
               <span>Offer</span>
             </div>
@@ -283,7 +302,7 @@ export default function CreateListing() {
                 required
                 className='p-3 border border-gray-300 rounded-lg'
                 onChange={handleChange}
-                value={formData.bedrooms}
+                value={formData.bedrooms} // the value of the input field is the number of bedrooms
               />
               <p>Beds</p>
             </div>
@@ -296,7 +315,7 @@ export default function CreateListing() {
                 required
                 className='p-3 border border-gray-300 rounded-lg'
                 onChange={handleChange}
-                value={formData.bathrooms}
+                value={formData.bathrooms} // the value of the input field is the number of bathrooms
               />
               <p>Baths</p>
             </div>
@@ -309,7 +328,7 @@ export default function CreateListing() {
                 required
                 className='p-3 border border-gray-300 rounded-lg'
                 onChange={handleChange}
-                value={formData.regularPrice}
+                value={formData.regularPrice} // the value of the input field is the regular price
               />
               <div className='flex flex-col items-center'>
                 <p>Regular price</p>
@@ -318,7 +337,7 @@ export default function CreateListing() {
                 )}
               </div>
             </div>
-            {formData.offer && (
+            {formData.offer && ( // if there is offer, only then display the discounted price
               <div className='flex items-center gap-2'>
                 <input
                   type='number'
@@ -394,6 +413,7 @@ export default function CreateListing() {
               </div>
             ))}
           <button
+            
             disabled={loading || uploading}
             className='p-3 bg-slate-700 text-white rounded-lg uppercase hover:opacity-95 disabled:opacity-80'
           >
