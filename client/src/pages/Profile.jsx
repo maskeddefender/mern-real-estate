@@ -197,6 +197,7 @@ export default function Profile() {
     }
   };
 
+  
   const handleShowListings = async () => {
     try {
       setShowListingsError(false);
