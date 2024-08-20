@@ -299,7 +299,7 @@ export default function Profile() {
         </button>
         <Link
           className='bg-green-700 text-white p-3 rounded-lg uppercase text-center hover:opacity-95'
-          to={'/create-listing'}
+          to={'/create-listing'} // when clicked the user is redirected to the create listing page - this is done using the Link component from react-router-dom
         >
           Create Listing
         </Link>
