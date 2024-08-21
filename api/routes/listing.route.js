@@ -9,6 +9,7 @@ const router = express.Router();
 // authenticating is alway checked first before the user can operate on the listing
 // create a create route for the listing
 router.post('/create', verifyToken, createListing);
+// create a delete route for the listing
 router.delete('/delete/:id', verifyToken, deleteListing);
 router.post('/update/:id', verifyToken, updateListing);
 router.get('/get/:id', getListing);

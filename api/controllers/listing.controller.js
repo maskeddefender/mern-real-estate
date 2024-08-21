@@ -16,20 +16,23 @@ export const createListing = async (req, res, next) => {
   }
 };
 
+// deleteListing - is a function that deletes a listing
 export const deleteListing = async (req, res, next) => {
+  // find the listing by id - await for the response from mongoDB - if it exists or not
   const listing = await Listing.findById(req.params.id);
-
+  // if the listing does not exist return an error                        
   if (!listing) {
     return next(errorHandler(404, 'Listing not found!'));
   }
-
+  // if it exists check if the user id is the same as the listing userRef - user is the owner of the listing
   if (req.user.id !== listing.userRef) {
     return next(errorHandler(401, 'You can only delete your own listings!'));
   }
-
+  // if the user is the owner of the listing delete the listing
   try {
     await Listing.findByIdAndDelete(req.params.id);
     res.status(200).json('Listing has been deleted!');
+    // error iff present is handled by the redux middleware
   } catch (error) {
     next(error);
   }

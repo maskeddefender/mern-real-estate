@@ -218,20 +218,26 @@ export default function Profile() {
     }
   };
 
+  // function to handle the delete of the listing - this function is responsible for deleting the listing - when the delete button is clicked the listing is deleted
   const handleListingDelete = async (listingId) => {
     try {
+      // create a delete request to the server to delete the listing by id
       const res = await fetch(`/api/listing/delete/${listingId}`, {
-        method: 'DELETE',
+        method: 'DELETE', // method is delete
       });
+      // get the data from the response in json format
       const data = await res.json();
+      // if the success key in the data object is false then log the message in the console and return
       if (data.success === false) {
         console.log(data.message);
         return;
       }
-
+      // if everything is okay then set the user listings to the previous state of the user listings state - this is to remove the deleted listing from the UI
       setUserListings((prev) =>
+        // filter the listings and return the listings that do not have the listing id - this is to remove the deleted listing from the UI
         prev.filter((listing) => listing._id !== listingId)
       );
+      // if the listing is deleted successfully then show the message in the console
     } catch (error) {
       console.log(error.message);
     }
@@ -362,7 +368,7 @@ export default function Profile() {
               {/* Two buttons for delete and edit listing - when the delete button is clicked the listing is deleted and when the edit button is clicked the user is redirected to the update listing page */}
               <div className='flex flex-col item-center'>
                 <button
-                  onClick={() => handleListingDelete(listing._id)}
+                  onClick={() => handleListingDelete(listing._id)} // 
                   className='text-red-700 uppercase'
                 >
                   Delete
