@@ -11,7 +11,9 @@ const router = express.Router();
 router.post('/create', verifyToken, createListing);
 // create a delete route for the listing
 router.delete('/delete/:id', verifyToken, deleteListing);
+// create an update route for the listing - edit the listing
 router.post('/update/:id', verifyToken, updateListing);
+// create a get route for the listing - information about the listing 
 router.get('/get/:id', getListing);
 router.get('/get', getListings);
 
