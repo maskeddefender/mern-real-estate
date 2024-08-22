@@ -247,6 +247,7 @@ export default function Search() {
             </p>
           )}
 
+          
           {!loading &&
             listings &&
             listings.map((listing) => (
