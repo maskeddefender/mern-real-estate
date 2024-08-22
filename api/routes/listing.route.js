@@ -15,6 +15,7 @@ router.delete('/delete/:id', verifyToken, deleteListing);
 router.post('/update/:id', verifyToken, updateListing);
 // create a get route for the listing - information about the listing 
 router.get('/get/:id', getListing);
+// create a get route for the listing - list of all the listings - this is for searching listings
 router.get('/get', getListings);
 
 export default router;

@@ -82,40 +82,51 @@ export const getListing = async (req, res, next) => {
   }
 };
 
+// getListings - is a function that gets a list of all the listings - this is for searching listings
 export const getListings = async (req, res, next) => {
   try {
+    // get the limit of the listings to be displayed - default is 9
     const limit = parseInt(req.query.limit) || 9;
+    // get the start index of the listings to be displayed - default is 0
     const startIndex = parseInt(req.query.startIndex) || 0;
+    // get the offer of the listings to be displayed - default is false
     let offer = req.query.offer;
-
+    // if the offer is undefined or false set the offer to be an array of false and true
     if (offer === undefined || offer === 'false') {
-      offer = { $in: [false, true] };
+      offer = { $in: [false, true] }; // $in is a mongoDB operator that selects the documents where the value of a field equals any value in the specified array
     }
 
+    // get the furnished of the listings to be displayed - default is false
     let furnished = req.query.furnished;
-
+    // if the furnished is undefined or false set the furnished to be an array of false and true
     if (furnished === undefined || furnished === 'false') {
-      furnished = { $in: [false, true] };
-    }
+      furnished = { $in: [false, true] }; // $in is a mongoDB operator that selects the documents where the value of a field equals any value in the specified array
+     }
 
+    // get the parking of the listings to be displayed - default is false
     let parking = req.query.parking;
-
+    // if the parking is undefined or false set the parking to be an array of false and true
     if (parking === undefined || parking === 'false') {
       parking = { $in: [false, true] };
     }
 
+    // get the type of the listings to be displayed - default is all
     let type = req.query.type;
-
+    // if the type is undefined or all set the type to be an array of sale and rent
     if (type === undefined || type === 'all') {
       type = { $in: ['sale', 'rent'] };
     }
 
+    // get the search term of the listings to be displayed - default is empty
     const searchTerm = req.query.searchTerm || '';
 
+    // get the sort of the listings to be displayed - default is createdAt
     const sort = req.query.sort || 'createdAt';
 
+    // get the order of the listings to be displayed - default is desc
     const order = req.query.order || 'desc';
 
+    // find the listings by name, offer, furnished, parking, type, sort and order - await for the response from mongoDB - if it exists or not
     const listings = await Listing.find({
       name: { $regex: searchTerm, $options: 'i' },
       offer,
