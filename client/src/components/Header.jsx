@@ -9,9 +9,12 @@ export default function Header() {
   const { currentUser } = useSelector((state) => state.user); // saved the name as user in userSlice
   // initialize the searchTerm state and setSearchTerm function
   const [searchTerm, setSearchTerm] = useState('');
+  // get the navigate function from the react-router-dom
   const navigate = useNavigate();
+  //  handle the submit event of the search form
   const handleSubmit = (e) => {
-    e.preventDefault();
+    e.preventDefault(); // prevent the default behavior of the form
+    // get the search term from the input field and set it to the url search query parameter - this will be used to search for listings
     const urlParams = new URLSearchParams(window.location.search);
     urlParams.set('searchTerm', searchTerm);
     const searchQuery = urlParams.toString();
@@ -42,6 +45,7 @@ export default function Header() {
             type='text'
             placeholder='Search...'
             className='bg-transparent focus:outline-none w-24 sm:w-64'
+            // serch click krne pr ye search box open ho jaye or search krne pr search box close ho jaye
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
