@@ -87,15 +87,16 @@ export const getUserListings = async (req, res, next) => {
   }
 };
 
+// get user by id - the user can only view their own account information 
 export const getUser = async (req, res, next) => {
   try {
-    
+    // find the user by id in the model we created in the user.model.js file
     const user = await User.findById(req.params.id);
-  
+    // if the user is not found then return the error message using the error handler middleware
     if (!user) return next(errorHandler(404, 'User not found!'));
-  
+    // if the user is found then return the user information to the client
     const { password: pass, ...rest } = user._doc;
-  
+    
     res.status(200).json(rest);
   } catch (error) {
     next(error);
