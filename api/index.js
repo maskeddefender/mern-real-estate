@@ -5,6 +5,7 @@ import userRouter from './routes/user.route.js';
 import authRouter from './routes/auth.route.js';
 import listingRouter from './routes/listing.route.js';
 import cookieParser from 'cookie-parser';
+import path from 'path'; // using this path we will build the directory name
 dotenv.config();
 
 // to get application configuration from .env file 
@@ -18,6 +19,10 @@ mongoose
     .catch((err) => {
         console.log(err);
     });
+
+    // dynamic directory app name so that this app run in this computer as well as other computer
+    // using this we will build a static folder 
+    const __dirname = path.resolve();
 
 
 // Create express instance application
@@ -41,6 +46,17 @@ app.use('/api/user', userRouter);
 app.use('/api/auth', authRouter);
 app.use('/api/listing', listingRouter);
 
+// Serve static files from the 'client/dist' directory, which is where the built client-side React application resides.
+// This ensures that any static assets (e.g., CSS, JavaScript, images) needed by the client are properly served by the server.
+app.use(express.static(path.join(__dirname, '/client/dist')));
+
+// Handle all remaining routes with a wildcard '*' to ensure that the client-side React application is served
+// for any route that doesn't match an API endpoint. This is crucial for single-page applications (SPAs) that use client-side routing.
+// When a request is made to any route (e.g., '/about', '/contact'), this middleware will serve the 'index.html' file.
+// React Router will then take over and render the appropriate component on the client side.
+app.get('*', (req, res) => {
+    res.sendFile(path.join(__dirname, 'client', 'dist', 'index.html'));
+});
 
 
 // api middleware to handle errors
